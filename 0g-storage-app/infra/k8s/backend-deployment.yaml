@@ -1,0 +1,19 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: storage-backend
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: storage-backend
+  template:
+    metadata:
+      labels:
+        app: storage-backend
+    spec:
+      containers:
+        - name: backend
+          image: backend:latest
+          ports:
+            - containerPort: 4000

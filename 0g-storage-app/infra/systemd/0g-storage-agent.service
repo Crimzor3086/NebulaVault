@@ -1,0 +1,11 @@
+[Unit]
+Description=0G Storage Agent
+After=network.target
+
+[Service]
+ExecStart=/usr/local/bin/agent
+Restart=always
+User=storage
+
+[Install]
+WantedBy=multi-user.target

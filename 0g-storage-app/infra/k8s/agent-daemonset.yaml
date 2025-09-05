@@ -1,0 +1,16 @@
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: storage-agent
+spec:
+  selector:
+    matchLabels:
+      app: storage-agent
+  template:
+    metadata:
+      labels:
+        app: storage-agent
+    spec:
+      containers:
+        - name: agent
+          image: agent:latest
