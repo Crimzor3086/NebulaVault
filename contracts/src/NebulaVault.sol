@@ -350,7 +350,7 @@ contract NebulaVault is Ownable, ReentrancyGuard, Pausable {
     {
         uploads = userUploadCounts[user];
         downloads = userDownloadCounts[user];
-        (, , storageUsed, storageQuota) = accessControl.getUserStorageInfo(user);
+        (storageQuota, storageUsed, ) = accessControl.getUserStorageInfo(user);
     }
 
     function getSystemStats() 

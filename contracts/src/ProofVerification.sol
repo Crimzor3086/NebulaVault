@@ -196,6 +196,60 @@ contract ProofVerification is Ownable, ReentrancyGuard {
     }
 
     /**
+     * @dev Internal function to verify a proof (used by batch verification)
+     * @param fileHash The hash of the file
+     * @param merkleRoot The Merkle root to verify against
+     * @param proof The Merkle proof
+     * @param indices The indices in the Merkle tree
+     * @param leafHash The hash of the leaf node
+     */
+    function _verifyProofInternal(
+        bytes32 fileHash,
+        bytes32 merkleRoot,
+        bytes32[] memory proof,
+        uint256[] memory indices,
+        bytes32 leafHash
+    ) internal {
+        bool isValid = _verifyMerkleProof(merkleRoot, proof, indices, leafHash);
+
+        VerificationResult storage result = verificationResults[fileHash];
+        
+        // Initialize if first verification
+        if (result.fileHash == bytes32(0)) {
+            result.fileHash = fileHash;
+            result.merkleRoot = merkleRoot;
+            result.timestamp = block.timestamp;
+        }
+
+        // Check if verifier already verified this file
+        require(!result.verifiers[msg.sender], "Already verified by this address");
+
+        result.verifiers[msg.sender] = true;
+        result.verificationCount++;
+
+        // If verification is valid, increment reputation
+        if (isValid) {
+            verifierReputation[msg.sender]++;
+        } else {
+            // Decrement reputation for invalid verification
+            if (verifierReputation[msg.sender] > 0) {
+                verifierReputation[msg.sender]--;
+            }
+        }
+
+        // Check if enough verifications reached
+        if (result.verificationCount >= verificationThreshold) {
+            result.isValid = isValid;
+            verifiedFiles[fileHash] = isValid;
+            
+            // Distribute rewards to verifiers
+            _distributeRewards(fileHash);
+        }
+
+        emit ProofVerified(fileHash, merkleRoot, msg.sender, isValid, block.timestamp);
+    }
+
+    /**
      * @dev Batch verify multiple proofs
      * @param fileHashes Array of file hashes
      * @param merkleRoots Array of Merkle roots
@@ -219,7 +273,7 @@ contract ProofVerification is Ownable, ReentrancyGuard {
         );
 
         for (uint256 i = 0; i < fileHashes.length; i++) {
-            verifyProof(
+            _verifyProofInternal(
                 fileHashes[i],
                 merkleRoots[i],
                 proofs[i],
