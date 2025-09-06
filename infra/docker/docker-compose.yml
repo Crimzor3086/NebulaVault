@@ -1,4 +1,5 @@
 version: "3.8"
+
 services:
   backend:
     build:
@@ -6,9 +7,84 @@ services:
       dockerfile: infra/docker/Dockerfile.backend
     ports:
       - "4000:4000"
+    environment:
+      - NODE_ENV=production
+      - PORT=4000
+      - DATABASE_URL=./data/nebularvault.db
+      - JWT_SECRET=${JWT_SECRET:-your-super-secret-jwt-key-change-this-in-production}
+      - CORS_ORIGIN=http://localhost:3000
+      - ZERO_G_ENDPOINT=${ZERO_G_ENDPOINT:-https://api.0g.ai}
+      - ZERO_G_API_KEY=${ZERO_G_API_KEY}
+    volumes:
+      - backend_data:/app/data
+      - backend_uploads:/app/uploads
+      - backend_temp:/app/temp
+    networks:
+      - nebularvault-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:4000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
   agent:
     build:
       context: ../..
       dockerfile: infra/docker/Dockerfile.agent
+    ports:
+      - "8080:8080"
+        environment:
+          - NEBULARVAULT_NETWORK_INDEXER_ENDPOINT=${INDEXER_ENDPOINT:-https://indexer.0g.ai}
+          - NEBULARVAULT_NETWORK_TRANSFER_ENDPOINT=${TRANSFER_ENDPOINT:-https://transfer.0g.ai}
+          - NEBULARVAULT_NETWORK_CORE_ENDPOINT=${CORE_ENDPOINT:-https://core.0g.ai}
+          - NEBULARVAULT_NETWORK_RPC_URL=${RPC_URL:-https://evmrpc-testnet.0g.ai}
+          - NEBULARVAULT_NETWORK_CHAIN_ID=${CHAIN_ID:-16601}
+          - NEBULARVAULT_NETWORK_CONTRACT_ADDRESS=${CONTRACT_ADDRESS:-0xd332ABE4395c5173E04F4cbBF39DB175C23ad0eC}
+          - NEBULARVAULT_NETWORK_PRIVATE_KEY=${PRIVATE_KEY}
+          - NEBULARVAULT_LOGGING_LEVEL=info
     volumes:
-      - ./data:/data
+      - agent_data:/app/data
+      - agent_temp:/app/temp
+    networks:
+      - nebularvault-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  webui:
+    build:
+      context: ../..
+      dockerfile: infra/docker/Dockerfile.webui
+    ports:
+      - "3000:3000"
+    networks:
+      - nebularvault-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+volumes:
+  backend_data:
+    driver: local
+  backend_uploads:
+    driver: local
+  backend_temp:
+    driver: local
+  agent_data:
+    driver: local
+  agent_temp:
+    driver: local
+
+networks:
+  nebularvault-network:
+    driver: bridge
