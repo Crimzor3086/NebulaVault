@@ -4,8 +4,19 @@ async function main() {
   console.log("🚀 Starting NebulaVault Smart Contract Deployment...");
   console.log("==================================================");
 
+  // Debug environment
+  console.log("🔍 Environment check:");
+  console.log("- PRIVATE_KEY exists:", !!process.env.PRIVATE_KEY);
+  console.log("- RPC_URL:", process.env.RPC_URL);
+  console.log("- CHAIN_ID:", process.env.CHAIN_ID);
+
   // Get the deployer account
   const [deployer] = await ethers.getSigners();
+  console.log("📋 Available signers:", deployer ? 1 : 0);
+  
+  if (!deployer) {
+    throw new Error("❌ No deployer available. Check your private key configuration.");
+  }
   console.log("📝 Deploying contracts with account:", deployer.address);
   
   const balance = await ethers.provider.getBalance(deployer.address);

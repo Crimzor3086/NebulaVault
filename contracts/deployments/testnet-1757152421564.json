@@ -1,0 +1,15 @@
+{
+  "network": "testnet",
+  "chainId": "16601",
+  "timestamp": "2025-09-06T09:53:41.564Z",
+  "deployer": "0xd332ABE4395c5173E04F4cbBF39DB175C23ad0eC",
+  "contracts": {
+    "nebulaVault": "0x5197FED3D7481eE6e10a37e7Bc23D2E8A273609d",
+    "fileStorage": "0xBd6227e9d853001F3877c01849D885F8842c4c3d",
+    "accessControl": "0x88E1fe37f1622Ff72f4d20C5f6e5293424bA5204",
+    "proofVerification": "0xA0bA3Ff9C05113792AD3FA007D90af2767F9C3c7"
+  },
+  "gasUsed": {
+    "nebulaVault": "7551964"
+  }
+}
